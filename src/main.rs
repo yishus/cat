@@ -1,4 +1,6 @@
 use structopt::StructOpt;
+use failure::ResultExt;
+use exitfailure::ExitFailure;
 
 /// Search for a pattern in a file and display the lines that contain it.
 #[derive(StructOpt)]
@@ -8,10 +10,11 @@ struct Cli {
     path: std::path::PathBuf,
 }
 
-fn main() {
+fn main() -> Result<(), ExitFailure> {
     let args = Cli::from_args();
-    let content = std::fs::read_to_string(&args.path).expect("could not read file");
-    for line in content.lines() {
-        println!("{}", line);
-    }
+    let path = &args.path;
+    let content = std::fs::read_to_string(path)
+        .with_context(|_| format!("could not read file {:?}", path))?;
+    println!("file content: {}", content);
+    Ok(())
 }
